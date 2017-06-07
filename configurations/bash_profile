@@ -1,0 +1,83 @@
+#
+# Unmap ctrl+s
+stty stop undef
+
+# Ignorar comandos duplicados y espacios en blanco delante (default blank)
+export HISTCONTROL=ignorespace:ignoredups
+ 
+# Save history with timestamp (default blank)
+export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S "
+
+alias mv='mv -i'
+alias cp='cp -i'
+alias rm='rm -i'
+alias ln='ln -i'
+alias vi='vim'
+export EDITOR='vim'
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+path_to_executable=$(which ds9)
+if [ -x "$path_to_executable"  ] ; then
+    alias ds9='ds9 -multiframe -zscale'
+fi
+
+DIRECTORY=$HOME/bin/
+if [ -d "$DIRECTORY"   ]; then
+    export PATH=${DIRECTORY}:$PATH
+fi
+
+DIRECTORY=/opt/astrometry/bin/
+if [ -d "$DIRECTORY"  ]; then
+    export PATH=${DIRECTORY}:$PATH
+fi
+
+DIRECTORY=/usr/local/go/bin/
+if [ -d "$DIRECTORY"  ]; then
+    export PATH=${DIRECTORY}:$PATH
+fi
+
+if [ -f ~/.bash-git-prompt/gitprompt.sh  ]; then
+    # Set config variables first
+    GIT_PROMPT_ONLY_IN_REPO=1
+
+    GIT_PROMPT_FETCH_REMOTE_STATUS=0   # uncomment to avoid fetching remote status
+
+    # GIT_PROMPT_SHOW_UPSTREAM=1 # uncomment to show upstream tracking branch
+    GIT_PROMPT_SHOW_UNTRACKED_FILES=no # can be no, normal or all; determines counting of untracked files
+
+    # GIT_PROMPT_STATUS_COMMAND=gitstatus_pre-1.7.10.sh # uncomment to support Git older than 1.7.10
+
+    # GIT_PROMPT_START=...    # uncomment for custom prompt start sequence
+    # GIT_PROMPT_END=...      # uncomment for custom prompt end sequence
+
+    # as last entry source the gitprompt script
+    # GIT_PROMPT_THEME=Custom # use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh)
+    # GIT_PROMPT_THEME_FILE=~/.git-prompt-colors.sh
+    # GIT_PROMPT_THEME=Solarized # use theme optimized for solarized color scheme
+    source ~/.bash-git-prompt/gitprompt.sh
+fi
+
+# Execute 'tmux update-env' inside tmux to update environment variables in bash  
+function tmux() {                                                                
+    local tmux=$(type -fp tmux)                                                  
+    case "$1" in                                                                 
+        update-environment|update-env|env-update)                                
+            local v                                                              
+            while read v; do                                                     
+                if [[ $v == -* ]]; then                                          
+                    unset ${v/#-/}                                               
+                else                                                             
+                    # Add quotes around the argument                             
+                    v=${v/=/=\"}                                                 
+                    v=${v/%/\"}                                                  
+                    eval export $v                                               
+                fi                                                               
+            done < <(tmux show-environment)                                      
+            ;;                                                                   
+        *)                                                                       
+            $tmux "$@"                                                           
+            ;;                                                                   
+    esac                                                                         
+}
+
