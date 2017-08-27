@@ -61,12 +61,15 @@ if [ -x "$DOCKER_EXEC" ] ; then
 
                 if [[ "$PLATFORM" == 'Darwin' ]]; then
                     DISPLAY=$DOCKER_IP:0
+                    NETWORK_PARAMS="-p 127.0.0.1:8888:8888" # net host does not work in mac as in linux and it is not required for X11 apps, ports should be implicitly exposed
+                else
+                    NETWORK_PARAMS="--net=host" # X11 apps requires net host, also all ports will be automatically exposed
                 fi
 
                 docker run -d \
                         --name base \
                         --hostname $HOSTNAME \
-                        --net=host \
+                        $NETWORK_PARAMS \
                         --detach-keys="ctrl-q,q" \
                         --device /dev/fuse --cap-add SYS_ADMIN \
                         -e DISPLAY=$DISPLAY \
@@ -76,7 +79,6 @@ if [ -x "$DOCKER_EXEC" ] ; then
                         -v $HOME:/home/$DOCKER_USERNAME/workspace \
                         -v ${HOME}/.ssh/id_rsa:/home/$DOCKER_USERNAME/.ssh/id_rsa:ro \
                         marblestation/base
-                    #-p 127.0.0.1:8888:8888 \
             fi
             echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
             docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME base /bin/bash
@@ -85,23 +87,23 @@ if [ -x "$DOCKER_EXEC" ] ; then
         fi
     }
 
-	# Kill all running containers.
-	alias docker_killall='printf "\n>>> Killing all containers\n\n" && docker kill $(docker ps -q) 2>/dev/null'
+    # Kill all running containers.
+    alias docker_killall='printf "\n>>> Killing all containers\n\n" && docker kill $(docker ps -q) 2>/dev/null'
 
-	# Stop all running containers.
-	alias docker_stopall='printf "\n>>> Stoping all containers\n\n" && docker stop $(docker ps -q) 2>/dev/null'
+    # Stop all running containers.
+    alias docker_stopall='printf "\n>>> Stoping all containers\n\n" && docker stop $(docker ps -q) 2>/dev/null'
 
-	# List all containers and images.
-	alias docker_listall='printf "\n>>> List all containers\n\n" && docker ps -a && printf "\n>>> List all containers\n\n" && docker images'
+    # List all containers and images.
+    alias docker_listall='printf "\n>>> List all containers\n\n" && docker ps -a && printf "\n>>> List all containers\n\n" && docker images'
 
-	# Delete all stopped containers.
-	alias docker_clean_containers='printf "\n>>> Deleting stopped containers\n\n" && docker rm -v $(docker ps -a -q -f status=exited) 2>/dev/null'
+    # Delete all stopped containers.
+    alias docker_clean_containers='printf "\n>>> Deleting stopped containers\n\n" && docker rm -v $(docker ps -a -q -f status=exited) 2>/dev/null'
 
-	# Delete all untagged images.
-	alias docker_clean_images='printf "\n>>> Deleting untagged images\n\n" && docker rmi $(docker images -q -f dangling=true) 2>/dev/null'
+    # Delete all untagged images.
+    alias docker_clean_images='printf "\n>>> Deleting untagged images\n\n" && docker rmi $(docker images -q -f dangling=true) 2>/dev/null'
 
-	# Delete all stopped containers and untagged images.
-	alias docker_clean='docker_clean_containers || true && docker_clean_images'
+    # Delete all stopped containers and untagged images.
+    alias docker_clean='docker_clean_containers || true && docker_clean_images'
 fi
 ```
 
