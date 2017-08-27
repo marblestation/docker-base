@@ -13,9 +13,16 @@ alias cp='cp -i'
 alias rm='rm -i'
 alias ln='ln -i'
 alias vi='vim'
+alias ls='ls --color'
 export EDITOR='vim'
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
+
+if [ -d "${HOME}/.vim/"  ]; then
+    if [ ! -d "${HOME}/.vim/plugged/"  ]; then
+        vim +PlugInstall +qall
+    fi
+fi
 
 path_to_executable=$(which ds9)
 if [ -x "$path_to_executable"  ] ; then
@@ -35,6 +42,23 @@ fi
 DIRECTORY=/usr/local/go/bin/
 if [ -d "$DIRECTORY"  ]; then
     export PATH=${DIRECTORY}:$PATH
+fi
+
+DIRECTORY=$HOME/.cargo/bin
+if [ -d "$DIRECTORY"  ]; then
+    export PATH=${DIRECTORY}:$PATH
+fi
+
+CONTAINER=$(cat /proc/1/cgroup |grep cpuset|cut -f 3 -d ':'|cut -f 2 -d '/')
+if [[ "$CONTAINER" == 'docker'  ]]; then
+    PS1='[docker] ${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    GIT_PROMPT_PREFIX="[docker] "
+else
+    BIOS_VERSION=$(sudo -n dmidecode -s bios-version)
+    if [[ "$BIOS_VERSION" == 'VirtualBox'  ]]; then
+        PS1='[VirtualBox] ${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+        GIT_PROMPT_PREFIX="[VirtualBox] "
+    fi
 fi
 
 if [ -f ~/.bash-git-prompt/gitprompt.sh  ]; then
@@ -58,26 +82,109 @@ if [ -f ~/.bash-git-prompt/gitprompt.sh  ]; then
     source ~/.bash-git-prompt/gitprompt.sh
 fi
 
-# Execute 'tmux update-env' inside tmux to update environment variables in bash  
-function tmux() {                                                                
-    local tmux=$(type -fp tmux)                                                  
-    case "$1" in                                                                 
-        update-environment|update-env|env-update)                                
-            local v                                                              
-            while read v; do                                                     
-                if [[ $v == -* ]]; then                                          
-                    unset ${v/#-/}                                               
-                else                                                             
-                    # Add quotes around the argument                             
-                    v=${v/=/=\"}                                                 
-                    v=${v/%/\"}                                                  
-                    eval export $v                                               
-                fi                                                               
-            done < <(tmux show-environment)                                      
-            ;;                                                                   
-        *)                                                                       
-            $tmux "$@"                                                           
-            ;;                                                                   
-    esac                                                                         
-}
+DOCKER_EXEC=$(which docker)
+if [ -x "$DOCKER_EXEC" ] ; then
+    docker_base_container() {
+        GITNAME="<edit>" # Example: John Smith
+        GITEMAIL="<edit>" # Example: jsmith@users.noreply.github.com
+        DOCKER_USERNAME="ubuntu"
+
+        PLATFORM=`uname`
+        if [[ "$PLATFORM" == 'Linux' ]] || [[ "$PLATFORM" == 'Darwin'  ]]; then
+            clear
+
+            if [[ "$PLATFORM" == 'Darwin' ]]; then
+                DOCKER_IP=$(ifconfig $(route -n get default |grep interface|cut -f 2 -d ':') | grep inet | awk '$1=="inet" {print $2}')
+                xhost + $DOCKER_IP
+            fi
+
+            STATUS=$(docker inspect --format="{{ .State.Status  }}" base 2>/dev/null )
+            if [ $? -eq 0 ]; then
+                if [[ ${STATUS} = "exited" ]]; then
+                    echo -e "\n>>> Starting stopped container."
+                    docker start base > /dev/null # It is needed to have it running for 'exec' to work
+                elif [[ ${STATUS} = "running" ]]; then
+                    echo -e "\n>>> Container already running."
+                fi
+                
+                echo -e "\n>>> Entering into the container, press ENTER if you don't see the linux prompt."
+                if [[ "$PLATFORM" == 'Darwin' ]]; then
+                    echo -e "\n>>> Run 'source /home/$DOCKER_USERNAME/.display' to update XQuartz/X11 display environment variable."
+                    docker exec -d -u $DOCKER_USERNAME base bash -c "echo 'export DISPLAY=$DOCKER_IP:0' > /home/$DOCKER_USERNAME/.display"
+                fi
+            else
+                echo -e "\n>>> Creating container."
+
+                if [[ "$PLATFORM" == 'Darwin' ]]; then
+                    DISPLAY=$DOCKER_IP:0
+                    NETWORK_PARAMS="-p 127.0.0.1:8888:8888" # net host does not work in mac as in linux and it is not required for X11 apps, ports should be implicitly exposed
+                else
+                    NETWORK_PARAMS="--net=host" # X11 apps requires net host, also all ports will be automatically exposed
+                fi
+
+                docker run -d \
+                        --name base \
+                        --hostname $HOSTNAME \
+						$NETWORK_PARAMS \
+                        --detach-keys="ctrl-q,q" \
+                        --device /dev/fuse --cap-add SYS_ADMIN \
+                        -e DISPLAY=$DISPLAY \
+                        -e GITEMAIL="${GITEMAIL}" -e GITNAME="${GITNAME}" \
+                        -v /tmp/.X11-unix:/tmp/.X11-unix \
+                        -v $HOME/.Xauthority:/home/$DOCKER_USERNAME/.Xauthority \
+                        -v $HOME:/home/$DOCKER_USERNAME/workspace \
+                        -v ${HOME}/.ssh/id_rsa:/home/$DOCKER_USERNAME/.ssh/id_rsa:ro \
+                        marblestation/base
+            fi
+            echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
+            docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME base /bin/bash
+        else
+            echo -e "\n>>> Unknown/untested platform."
+        fi
+    }
+
+	# Kill all running containers.
+	alias docker_killall='printf "\n>>> Killing all containers\n\n" && docker kill $(docker ps -q) 2>/dev/null'
+
+	# Stop all running containers.
+	alias docker_stopall='printf "\n>>> Stoping all containers\n\n" && docker stop $(docker ps -q) 2>/dev/null'
+
+	# List all containers and images.
+	alias docker_listall='printf "\n>>> List all containers\n\n" && docker ps -a && printf "\n>>> List all containers\n\n" && docker images'
+
+	# Delete all stopped containers.
+	alias docker_clean_containers='printf "\n>>> Deleting stopped containers\n\n" && docker rm -v $(docker ps -a -q -f status=exited) 2>/dev/null'
+
+	# Delete all untagged images.
+	alias docker_clean_images='printf "\n>>> Deleting untagged images\n\n" && docker rmi $(docker images -q -f dangling=true) 2>/dev/null'
+
+	# Delete all stopped containers and untagged images.
+	alias docker_clean='docker_clean_containers || true && docker_clean_images'
+fi
+
+TMUX_EXEC=$(which tmux)
+if [ -x "$TMUX_EXEC" ] ; then
+    # Execute 'tmux update-env' inside tmux to update environment variables in bash  
+    function tmux() {                                                                
+        local tmux=$(type -fp tmux)                                                  
+        case "$1" in                                                                 
+            update-environment|update-env|env-update)                                
+                local v                                                              
+                while read v; do                                                     
+                    if [[ $v == -* ]]; then                                          
+                        unset ${v/#-/}                                               
+                    else                                                             
+                        # Add quotes around the argument                             
+                        v=${v/=/=\"}                                                 
+                        v=${v/%/\"}                                                  
+                        eval export $v                                               
+                    fi                                                               
+                done < <(tmux show-environment)                                      
+                ;;                                                                   
+            *)                                                                       
+                $tmux "$@"                                                           
+                ;;                                                                   
+        esac                                                                         
+    }
+fi
 

@@ -1,53 +1,49 @@
-FROM ubuntu:16.04
+FROM phusion/baseimage:0.9.22
 MAINTAINER Sergi Blanco-Cuaresma <marblestation@users.noreply.github.com>
 USER root
 
-## SYSTEM / NETWORK / DEV TOOLS ################################################
-#-------------------------------------------------------------------------------
+### SYSTEM / NETWORK / DEV TOOLS ################################################
+##-------------------------------------------------------------------------------
 RUN apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confold" && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-                                                build-essential \
-                                                gfortran \
-                                                libncurses5-dev \
-                                                libblas-dev \
-                                                liblapack-dev \
-                                                libatlas-base-dev \
-                                                libfreetype6-dev \
-                                                #tk-dev \
-                                                libpng-dev \
-                                                libhdf5-dev \
-                                                #
-                                                sudo \
-                                                htop \
-                                                locales \
-                                                ca-certificates \
-                                                apt-transport-https \
-                                                libssl-dev \
-                                                wget \
-                                                curl \
-                                                bash-completion \
-                                                file \
-                                                git \
-                                                git-gui \
-                                                tig \
-                                                #vim \
-                                                # required to add a ppa:
-                                                software-properties-common \
-                                                exuberant-ctags \
-                                                tmux \
-                                                less \
-                                                rsync \
-                                                sqlite3 \
-                                                openssh-client \
-                                                sshfs \
-                                                net-tools \
-                                                iputils-ping \
-                                                psmisc \
-                                                x11-apps && \
-    # Install Tini which will be PID 0 (in charge of killing zombie processes and sending signals from outside the container)
-    wget --quiet https://github.com/krallin/tini/releases/download/v0.14.0/tini && \
-    mv tini /usr/local/bin/tini && \
-    chmod +x /usr/local/bin/tini && \
+        sudo \
+        wget \
+        ca-certificates \
+        apt-transport-https \
+        git \
+        x11-apps && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        gfortran \
+        libncurses5-dev \
+        libblas-dev \
+        liblapack-dev \
+        libatlas-base-dev \
+        libfreetype6-dev \
+        #tk-dev \
+        libpng-dev \
+        libhdf5-dev \
+        #
+        htop \
+        locales \
+        libssl-dev \
+        curl \
+        bash-completion \
+        file \
+        git-gui \
+        tig \
+        #vim \
+        exuberant-ctags \
+        tmux \
+        less \
+        rsync \
+        sqlite3 \
+        openssh-client \
+        sshfs \
+        net-tools \
+        iputils-ping \
+        psmisc && \
     #
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
@@ -72,16 +68,16 @@ RUN add-apt-repository -y ppa:jonathonf/vim && \
 #-------------------------------------------------------------------------------
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-                                                python \
-                                                python-dev \
-                                                python-tk \
-                                                #python-qt4 \
-                                                python-pip \
-                                                python-numpy \
-                                                python-scipy \
-                                                python-matplotlib \
-                                                python-pandas \
-                                                python-setuptools && \
+        python \
+        python-dev \
+        python-tk \
+        #python-qt4 \
+        python-pip \
+        python-numpy \
+        python-scipy \
+        python-matplotlib \
+        python-pandas \
+        python-setuptools && \
     pip install --upgrade pip && \
     pip install --upgrade numpy && \
     pip install --upgrade scipy && \
@@ -91,7 +87,43 @@ RUN apt-get update && \
     pip install wheel && \
     pip install jupyter && \
     pip install astropy && \
-    pip install pudb
+    pip install pudb && \
+    pip install cython && \
+    pip install pyflakes && \
+    pip install scikit-learn && \
+    pip install lockfile && \
+    pip install patsy && \
+    pip install statsmodels
+#-------------------------------------------------------------------------------
+################################################################################
+
+## Latex #######################################################################
+#-------------------------------------------------------------------------------
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        texlive texlive-bibtex-extra texlive-fonts-extra texlive-latex-extra texlive-publishers \
+        latexmk \
+        texlive texlive-lang-french texlive-lang-spanish
+#-------------------------------------------------------------------------------
+################################################################################
+
+
+
+## GOLANG ######################################################################
+#-------------------------------------------------------------------------------
+ENV GOLANG_VERSION 1.9
+RUN curl -sLO https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
+#-------------------------------------------------------------------------------
+################################################################################
+
+
+
+## WEB DEVELOPMENT #############################################################
+#-------------------------------------------------------------------------------
+# NodeJS
+RUN apt-get install -y --no-install-recommends nodejs nodejs-legacy npm 
 #-------------------------------------------------------------------------------
 ################################################################################
 
@@ -104,36 +136,37 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get clean && \
     DEBIAN_FRONTEND=noninteractive apt-get autoremove -y && \
     rm -rf \
         /root/.cache/* \
-        /var/lib/apt/lists/* \
         /tmp/* \
-        /var/tmp/* \
-        /requirements_*.txt \
-        /install_*.sh
+        /var/tmp/*
+        #/var/lib/apt/lists/*
 #-------------------------------------------------------------------------------
 # Script to setup git
-COPY scripts/start.sh /usr/local/bin/start.sh
+COPY scripts/010_git_setup.sh /etc/my_init.d/010_git_setup.sh
 #-------------------------------------------------------------------------------
-# Create a user to run things as
-# - Set username to be created (default 'docker')
-ARG USERNAME=docker
-ENV USERNAME docker
+# Create a docker user to run things as
 
-RUN useradd -m -s /bin/bash -U -G users ${USERNAME} && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/users
+RUN useradd -m -s /bin/bash -U -G users ubuntu && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/users
 
 ENV LANG en_US.utf8
-USER ${USERNAME}
+USER ubuntu
+
+### RUST ########################################################################
+##-------------------------------------------------------------------------------
+#RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+##-------------------------------------------------------------------------------
+#################################################################################
 
 # Vim setup for the user
-RUN cd /home/${USERNAME}/ && \
+RUN cd /home/ubuntu/ && \
         mkdir -p .vim/undodir/ && \
         mkdir -p .vim/spell/ && \
         mkdir -p .vim/autoload/ && \
-        cd /home/${USERNAME}/.vim/autoload && \
+        cd /home/ubuntu/.vim/autoload && \
         wget --quiet https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
-        cd /home/${USERNAME}/ && \
+        cd /home/ubuntu/ && \
         wget --quiet https://raw.githubusercontent.com/marblestation/vim-complex-sensible/master/vimrc -O .vim/vimrc && \
         ln -s .vim/vimrc .vimrc && \
-        cd /home/${USERNAME}/.vim/spell/ && \
+        cd /home/ubuntu/.vim/spell/ && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/es.utf-8.spl && \
@@ -142,18 +175,19 @@ RUN cd /home/${USERNAME}/ && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/fr.utf-8.sug && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/ca.utf-8.spl && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/ca.utf-8.sug && \
-        cd /home/${USERNAME}/ && \
+        cd /home/ubuntu/ && \
         vim +PlugInstall +qall
 
-COPY configurations/tmux.conf /home/${USERNAME}/.tmux.conf
-COPY configurations/bash_profile /home/${USERNAME}/.bash_profile
-RUN cd /home/${USERNAME}/ && \
-        echo "source \$HOME/.bash_profile" >> /home/${USERNAME}/.bashrc && \
-        git clone https://github.com/magicmonty/bash-git-prompt.git /home/${USERNAME}/.bash-git-prompt --depth=1 && \
-        sudo chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/
+COPY configurations/tmux.conf /home/ubuntu/.tmux.conf
+COPY configurations/bash_profile /home/ubuntu/.bash_profile
+RUN cd /home/ubuntu/ && \
+        echo "source \$HOME/.bash_profile" >> /home/ubuntu/.bashrc && \
+        git clone https://github.com/magicmonty/bash-git-prompt.git /home/ubuntu/.bash-git-prompt --depth=1
 
+USER root
+RUN chown -R ubuntu:ubuntu /home/ubuntu/
 
-WORKDIR /home/${USERNAME}/
-ENTRYPOINT ["tini", "--"]
-cmd ["/usr/local/bin/start.sh"]
+WORKDIR /home/ubuntu/
+# Use baseimage-docker's init system.
+CMD ["/sbin/my_init"]
 ################################################################################
