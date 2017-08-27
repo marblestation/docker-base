@@ -167,3 +167,13 @@ Finally, to check its status:
 vagrant status
 vagrant global-status
 ```
+
+From within the virtual machine you can access your host user home directory in $HOME/workspace, but you can also mount it via SSHFS (if the host has an active SSH service). For instance:
+
+```bash
+VHOST_USER=username
+VHOST_IP=(route | awk '/default/ { print $2   }')
+mkdir -p $HOME/remote/vhost
+sshfs -o allow_root,uid=1000,gid=1000 ${VHOST_USER}@${VHOST_IP}:/Users/${VHOST_USER} $HOME/remote/vhost
+fusermount -u $HOME/remote/vhost
+```

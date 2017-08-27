@@ -45,6 +45,8 @@ RUN apt-get update && \
         iputils-ping \
         psmisc && \
     #
+    sed -i -e "s/#user_allow_other/user_allow_other/g" /etc/fuse.conf && \
+    #
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
