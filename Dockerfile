@@ -160,6 +160,7 @@ USER ubuntu
 
 # Vim setup for the user
 RUN cd /home/ubuntu/ && \
+        mkdir -p .ssh/ && \
         mkdir -p .vim/undodir/ && \
         mkdir -p .vim/spell/ && \
         mkdir -p .vim/autoload/ && \

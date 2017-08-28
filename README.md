@@ -35,8 +35,6 @@ if [ -x "$DOCKER_EXEC" ] ; then
 
         PLATFORM=`uname`
         if [[ "$PLATFORM" == 'Linux' ]] || [[ "$PLATFORM" == 'Darwin'  ]]; then
-            clear
-
             if [[ "$PLATFORM" == 'Darwin' ]]; then
                 DOCKER_IP=$(ifconfig $(route -n get default |grep interface|cut -f 2 -d ':') | grep inet | awk '$1=="inet" {print $2}')
                 xhost + $DOCKER_IP
@@ -70,21 +68,41 @@ if [ -x "$DOCKER_EXEC" ] ; then
                         --name base \
                         --hostname $HOSTNAME \
                         $NETWORK_PARAMS \
-                        --detach-keys="ctrl-q,q" \
                         --device /dev/fuse --cap-add SYS_ADMIN \
                         -e DISPLAY=$DISPLAY \
                         -e GITEMAIL="${GITEMAIL}" -e GITNAME="${GITNAME}" \
                         -v /tmp/.X11-unix:/tmp/.X11-unix \
                         -v $HOME/.Xauthority:/home/$DOCKER_USERNAME/.Xauthority \
-                        -v $HOME:/home/$DOCKER_USERNAME/workspace \
+                        -v $HOME:/workspace \
                         -v ${HOME}/.ssh/id_rsa:/home/$DOCKER_USERNAME/.ssh/id_rsa:ro \
                         marblestation/base
+                docker exec base usermod -u $UID ubuntu
+                docker exec -u ubuntu base ln -s /workspace /home/$DOCKER_USERNAME/workspace
             fi
             echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
             docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME base /bin/bash
         else
             echo -e "\n>>> Unknown/untested platform."
         fi
+    }
+    
+    docker_base_container_restart() {
+        PLATFORM=`uname`
+        if [[ "$PLATFORM" == 'Linux' ]] || [[ "$PLATFORM" == 'Darwin'  ]]; then
+            STATUS=$(docker inspect --format="{{ .State.Status  }}" base 2>/dev/null )
+            if [ $? -eq 0 ]; then
+                if [[ ${STATUS} = "exited" ]]; then
+                    echo -e "\n>>> Removing stopped container."
+                    docker rm base
+                elif [[ ${STATUS} = "running" ]]; then
+                    echo -e "\n>>> Stopping running containter."
+                    docker stop base > /dev/null
+                    echo -e "\n>>> Removing stopped container."
+                    docker rm base > /dev/null
+                fi
+            fi
+        fi
+        docker_base_container
     }
 
     # Kill all running containers.
