@@ -134,7 +134,15 @@ if [ -x "$DOCKER_EXEC" ] ; then
                         -v $HOME:/workspace \
                         -v ${HOME}/.ssh/id_rsa:/home/$DOCKER_USERNAME/.ssh/id_rsa:ro \
                         marblestation/base
-                docker exec base usermod -u $UID ubuntu
+                if [[ "$PLATFORM" == 'Linux' ]]; then
+                    # Changing ownership by usermod/chown can be extremely slow in some setups in OSX
+                    # and in any case, it does not seem to be needed
+                    LOCAL_UID=$(id -u)
+                    LOCAL_GID=$(id -g)
+                    docker exec base usermod -o -u $LOCAL_UID ubuntu
+                    docker exec base groupmod -o -g $LOCAL_GID ubuntu
+                    docker exec base chown -R $LOCAL_UID:$LOCAL_GID /home/ubuntu
+                fi
                 docker exec -u ubuntu base ln -s /workspace /home/$DOCKER_USERNAME/workspace
             fi
             echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
