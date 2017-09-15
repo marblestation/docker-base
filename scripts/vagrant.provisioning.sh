@@ -73,6 +73,7 @@ apt-get install -y --no-install-recommends vim
 apt-get install -y --no-install-recommends \
 												python \
 												python-dev \
+												python-virtualenv \
 												python-tk \
 												python-pip \
 												python-numpy \

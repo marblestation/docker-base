@@ -72,6 +72,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python \
         python-dev \
+        python-virtualenv \
         python-tk \
         #python-qt4 \
         python-pip \
