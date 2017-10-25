@@ -105,6 +105,7 @@ RUN apt-get update && \
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         texlive texlive-bibtex-extra texlive-fonts-extra texlive-latex-extra texlive-publishers \
+      	texlive-generic-recommended tex-gyre \
         latexmk \
         texlive texlive-lang-french texlive-lang-spanish
 #-------------------------------------------------------------------------------
