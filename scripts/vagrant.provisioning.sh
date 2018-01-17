@@ -166,7 +166,7 @@ sed -i -e "s/GITNAME=\"<edit>\"/GITNAME=\"${GITNAME}\"/g" ${HOME}/.bash_profile
 sed -i -e "s/GITEMAIL=\"<edit>\"/GITEMAIL=\"${GITEMAIL}\"/g" ${HOME}/.bash_profile
 cp -f /vagrant/configurations/tmux.conf ${HOME}/.tmux.conf
 echo "source \$HOME/.bash_profile" >> ${HOME}/.bashrc
-git clone https://github.com/magicmonty/bash-git-prompt.git ${HOME}/.bash-git-prompt --depth=1
+wget --quiet https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ${HOME}/.git-prompt.sh
 
 if [ ! -z "$GITEMAIL" ]; then
     git config --global user.email "$GITEMAIL"
@@ -176,7 +176,7 @@ if [ ! -z "$GITNAME" ]; then
 fi
 git config --global push.default simple
 
-chown -R ${USER}:${USER} ${HOME}/.vim/ ${HOME}/.vimrc ${HOME}/.bash_profile ${HOME}/.tmux.conf ${HOME}/.bash-git-prompt ${HOME}/.gitconfig
+chown -R ${USER}:${USER} ${HOME}/.vim/ ${HOME}/.vimrc ${HOME}/.bash_profile ${HOME}/.tmux.conf ${HOME}/.git-prompt.sh ${HOME}/.gitconfig
 
 USER=root
 HOME=/root

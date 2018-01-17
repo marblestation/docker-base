@@ -187,7 +187,7 @@ COPY configurations/tmux.conf /home/ubuntu/.tmux.conf
 COPY configurations/bash_profile /home/ubuntu/.bash_profile
 RUN cd /home/ubuntu/ && \
         echo "source \$HOME/.bash_profile" >> /home/ubuntu/.bashrc && \
-        git clone https://github.com/magicmonty/bash-git-prompt.git /home/ubuntu/.bash-git-prompt --depth=1
+        wget --quiet https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O $HOME/.git-prompt.sh
 
 USER root
 RUN chown -R ubuntu:ubuntu /home/ubuntu/
