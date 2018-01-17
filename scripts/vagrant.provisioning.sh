@@ -76,16 +76,12 @@ apt-get install -y --no-install-recommends \
 												python-virtualenv \
 												python-tk \
 												python-pip \
-												python-numpy \
-												python-scipy \
-												python-matplotlib \
-												python-pandas \
 												python-setuptools
 pip install --upgrade pip
-pip install --upgrade numpy
-pip install --upgrade scipy
-pip install --upgrade matplotlib
-pip install --upgrade pandas
+pip install numpy
+pip install scipy
+pip install matplotlib
+pip install pandas
 pip install tables
 pip install wheel
 pip install jupyter
@@ -120,7 +116,7 @@ curl https://sh.rustup.rs -sSf | su - -c "sh -s -- -y" ubuntu
 
 ## GOLANG ######################################################################
 #-------------------------------------------------------------------------------
-GOLANG_VERSION=1.9
+GOLANG_VERSION=1.9.2
 curl -sLO https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz
 tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz
 rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
