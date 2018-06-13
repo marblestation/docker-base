@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.9.22
+FROM phusion/baseimage:0.10.1
 MAINTAINER Sergi Blanco-Cuaresma <marblestation@users.noreply.github.com>
 USER root
 
@@ -81,7 +81,7 @@ RUN apt-get update && \
         python-matplotlib \
         python-pandas \
         python-setuptools && \
-    pip install --upgrade pip && \
+    pip install --upgrade pip==9.0.3 && \
     pip install --upgrade numpy && \
     pip install --upgrade scipy && \
     pip install --upgrade matplotlib && \
@@ -95,6 +95,7 @@ RUN apt-get update && \
     pip install pyflakes && \
     pip install scikit-learn && \
     pip install lockfile && \
+    pip install dill && \
     pip install patsy && \
     pip install statsmodels
 #-------------------------------------------------------------------------------
@@ -113,23 +114,23 @@ RUN apt-get update && \
 
 
 
-## GOLANG ######################################################################
-#-------------------------------------------------------------------------------
-ENV GOLANG_VERSION 1.9
-RUN curl -sLO https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-    rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
-#-------------------------------------------------------------------------------
-################################################################################
+### GOLANG ######################################################################
+##-------------------------------------------------------------------------------
+#ENV GOLANG_VERSION 1.9
+#RUN curl -sLO https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    #tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    #rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
+##-------------------------------------------------------------------------------
+#################################################################################
 
 
 
-## WEB DEVELOPMENT #############################################################
-#-------------------------------------------------------------------------------
-# NodeJS
-RUN apt-get install -y --no-install-recommends nodejs nodejs-legacy npm 
-#-------------------------------------------------------------------------------
-################################################################################
+### WEB DEVELOPMENT #############################################################
+##-------------------------------------------------------------------------------
+## NodeJS
+#RUN apt-get install -y --no-install-recommends nodejs nodejs-legacy npm 
+##-------------------------------------------------------------------------------
+#################################################################################
 
 
 
