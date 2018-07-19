@@ -88,7 +88,7 @@ if [ -x "$DOCKER_EXEC" ] ; then
                 docker exec -u ubuntu base ln -s /workspace /home/$DOCKER_USERNAME/workspace
             fi
             echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
-            docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME base /bin/bash
+            docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME -e COLUMNS=`tput cols` -e LINES=`tput lines` base /bin/bash
         else
             echo -e "\n>>> Unknown/untested platform."
         fi

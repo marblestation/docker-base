@@ -108,6 +108,7 @@ RUN apt-get update && \
         texlive texlive-bibtex-extra texlive-fonts-extra texlive-latex-extra texlive-publishers \
       	texlive-generic-recommended tex-gyre \
         latexmk \
+        texlive-font-utils \
         texlive texlive-lang-french texlive-lang-spanish
 #-------------------------------------------------------------------------------
 ################################################################################
