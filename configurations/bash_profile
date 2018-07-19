@@ -74,7 +74,7 @@ if [ -x "$DOCKER_EXEC" ] ; then
     docker_base_container() {
         GITNAME="<edit>" # Example: John Smith
         GITEMAIL="<edit>" # Example: jsmith@users.noreply.github.com
-        DOCKER_USERNAME="ubuntu"
+        DOCKER_USERNAME="docker"
 
         PLATFORM=`uname`
         if [[ "$PLATFORM" == 'Linux' ]] || [[ "$PLATFORM" == 'Darwin'  ]]; then
@@ -124,11 +124,11 @@ if [ -x "$DOCKER_EXEC" ] ; then
                     # and in any case, it does not seem to be needed
                     LOCAL_UID=$(id -u)
                     LOCAL_GID=$(id -g)
-                    docker exec base usermod -o -u $LOCAL_UID ubuntu
-                    docker exec base groupmod -o -g $LOCAL_GID ubuntu
-                    docker exec base chown -R $LOCAL_UID:$LOCAL_GID /home/ubuntu
+                    docker exec base usermod -o -u $LOCAL_UID docker
+                    docker exec base groupmod -o -g $LOCAL_GID docker
+                    docker exec base chown -R $LOCAL_UID:$LOCAL_GID /home/docker
                 fi
-                docker exec -u ubuntu base ln -s /workspace /home/$DOCKER_USERNAME/workspace
+                docker exec -u docker base ln -s /workspace /home/$DOCKER_USERNAME/workspace
             fi
             echo -e "\n>>> Detach with 'ctrl-q,q'.\n"
             docker exec -it --detach-keys="ctrl-q,q" -u $DOCKER_USERNAME -e COLUMNS=`tput cols` -e LINES=`tput lines` base /bin/bash

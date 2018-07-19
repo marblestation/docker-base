@@ -21,7 +21,7 @@ set -e
 echo -e "\n>>> Building image."
 docker build -t marblestation/base .
 echo -e "\n>>> Running container."
-DOCKER_USERNAME="ubuntu"
+DOCKER_USERNAME="docker"
 
 if [[ "$PLATFORM" == 'Darwin' ]]; then
     DOCKER_IP=$(ifconfig $(route -n get default |grep interface|cut -f 2 -d ':') | grep inet | awk '$1=="inet" {print $2}')

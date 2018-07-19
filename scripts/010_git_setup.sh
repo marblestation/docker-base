@@ -1,11 +1,11 @@
 #!/bin/bash
 
-HOME="/home/ubuntu"
+HOME="/home/docker"
 if [ ! -z "$GITEMAIL" ]; then
-    /sbin/setuser ubuntu git config --global user.email "$GITEMAIL"
+    /sbin/setuser docker git config --global user.email "$GITEMAIL"
 fi
 if [ ! -z "$GITNAME" ]; then
-    /sbin/setuser ubuntu git config --global user.name "$GITNAME"
+    /sbin/setuser docker git config --global user.name "$GITNAME"
 fi
-/sbin/setuser ubuntu git config --global push.default simple
+/sbin/setuser docker git config --global push.default simple
 

@@ -21,7 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     base.vm.hostname = "vagrant-base"
     base.vm.network :private_network, ip: "10.10.10.10"
     base.vm.network "forwarded_port", guest: 8888, host: 18888, auto_correct: true # Jupyter
-	base.vm.synced_folder ENV['HOME'], "/home/ubuntu/workspace" # Apart from /vagrant
+	base.vm.synced_folder ENV['HOME'], "/home/vagrant/workspace" # Apart from /vagrant
     base.vm.provider "virtualbox" do |vb|
         #vb.memory = "2048"
         vb.memory = "4096"

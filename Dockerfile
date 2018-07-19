@@ -151,10 +151,10 @@ COPY scripts/010_git_setup.sh /etc/my_init.d/010_git_setup.sh
 #-------------------------------------------------------------------------------
 # Create a docker user to run things as
 
-RUN useradd -m -s /bin/bash -U -G users ubuntu && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/users
+RUN useradd -m -s /bin/bash -U -G users docker && echo "docker ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/users
 
 ENV LANG en_US.utf8
-USER ubuntu
+USER docker
 
 ### RUST ########################################################################
 ##-------------------------------------------------------------------------------
@@ -163,17 +163,17 @@ USER ubuntu
 #################################################################################
 
 # Vim setup for the user
-RUN cd /home/ubuntu/ && \
+RUN cd /home/docker/ && \
         mkdir -p .ssh/ && \
         mkdir -p .vim/undodir/ && \
         mkdir -p .vim/spell/ && \
         mkdir -p .vim/autoload/ && \
-        cd /home/ubuntu/.vim/autoload && \
+        cd /home/docker/.vim/autoload && \
         wget --quiet https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
-        cd /home/ubuntu/ && \
+        cd /home/docker/ && \
         wget --quiet https://raw.githubusercontent.com/marblestation/vim-complex-sensible/master/vimrc -O .vim/vimrc && \
         ln -s .vim/vimrc .vimrc && \
-        cd /home/ubuntu/.vim/spell/ && \
+        cd /home/docker/.vim/spell/ && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/es.utf-8.spl && \
@@ -182,19 +182,19 @@ RUN cd /home/ubuntu/ && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/fr.utf-8.sug && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/ca.utf-8.spl && \
         wget --quiet http://ftp.vim.org/vim/runtime/spell/ca.utf-8.sug && \
-        cd /home/ubuntu/ && \
+        cd /home/docker/ && \
         vim +PlugInstall +qall
 
-COPY configurations/tmux.conf /home/ubuntu/.tmux.conf
-COPY configurations/bash_profile /home/ubuntu/.bash_profile
-RUN cd /home/ubuntu/ && \
-        echo "source \$HOME/.bash_profile" >> /home/ubuntu/.bashrc && \
+COPY configurations/tmux.conf /home/docker/.tmux.conf
+COPY configurations/bash_profile /home/docker/.bash_profile
+RUN cd /home/docker/ && \
+        echo "source \$HOME/.bash_profile" >> /home/docker/.bashrc && \
         wget --quiet https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O $HOME/.git-prompt.sh
 
 USER root
-RUN chown -R ubuntu:ubuntu /home/ubuntu/
+RUN chown -R docker:docker /home/docker/
 
-WORKDIR /home/ubuntu/
+WORKDIR /home/docker/
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
 ################################################################################

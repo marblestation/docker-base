@@ -15,7 +15,7 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 apt-get update
 apt-get install -y docker-ce
-usermod -aG docker ubuntu
+usermod -aG docker vagrant
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ apt-get install -y --no-install-recommends \
 
 ### RUST ########################################################################
 ##-------------------------------------------------------------------------------
-#curl https://sh.rustup.rs -sSf | su - -c "sh -s -- -y" ubuntu
+#curl https://sh.rustup.rs -sSf | su - -c "sh -s -- -y" vagrant
 ##-------------------------------------------------------------------------------
 #################################################################################
 
@@ -138,7 +138,7 @@ apt-get install -y --no-install-recommends \
 ### FINAL SETUP #################################################################
 #-------------------------------------------------------------------------------
 # Vim setup for the current user
-USER=ubuntu
+USER=vagrant
 HOME=/home/${USER}
 cd $HOME
 mkdir -p ${HOME}/.vim/undodir/
@@ -186,7 +186,7 @@ apt-get autoremove --purge -y
 export HISTFILE=/dev/null
 rm -rf \
 	/root/.bash_history \
-	/home/ubuntu/.bash_history \
+	/home/vagrant/.bash_history \
 	/root/.cache/* \
 	/tmp/* \
 	/var/tmp/*
